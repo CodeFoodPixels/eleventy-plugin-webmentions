@@ -1,0 +1,14 @@
+{
+	"name": "eleventy-plugin-webmentions",
+	"version": "0.0.1",
+	"description": "An eleventy plugin to fetch webmentions and helper methods to display them",
+	"main": ".eleventy.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Luke Bonaccorsi",
+	"license": "MIT",
+	"dependencies": {
+		"node-fetch": "^2.6.6"
+	}
+}
