@@ -29,7 +29,6 @@ module.exports = class Webmentions {
     if (response.ok) {
       const feed = await response.json();
       if (feed.children.length === PER_PAGE) {
-        console.log(feed.children);
         const olderMentions = await this.fetchWebmentions(since, page + 1);
 
         return [...feed.children, ...olderMentions];
