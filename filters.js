@@ -1,33 +1,56 @@
-const { isRedirect } = require("node-fetch");
 const { URL } = require("url");
+const truncateHTML = require("truncate-html");
+const sanitizeHTML = require("sanitize-html");
+const { encode } = require("html-entities");
 
-const allowedTypes = {
+const sanitizeDefaults = {
+  allowedTags: ["b", "i", "em", "strong", "a"],
+  allowedAttributes: {
+    a: ["href"],
+  },
+};
+const typeDefaults = {
   likes: ["like-of"],
   reposts: ["repost-of"],
   comments: ["mention-of", "in-reply-to"],
 };
 
-function stripTrailingSlashes(str) {
-  let i = str.length;
-  while (str[--i] === "/");
-  return str.slice(0, i + 1);
+function defaultSort(a, b) {
+  return (
+    new Date(a.published || a["wm-received"]) -
+    new Date(b.published || b["wm-received"])
+  );
 }
 
-module.exports = ({
+function stripOuterSlashes(str) {
+  let start = 0;
+  while (str[start++] === "/");
+  let end = str.length;
+  while (str[--end] === "/");
+  return str.slice(start - 1, end + 1);
+}
+
+const filters = ({
   maxContentLength = 280,
-  truncationMarker = '&hellip; <span class="webmention__truncated">Truncated</span>',
-  types = allowedTypes,
+  truncationMarker = "&hellip;",
+  htmlContent = true,
+  allowedTypes = typeDefaults,
+  sanitizeOptions = sanitizeDefaults,
+  sortFunction = defaultSort,
 }) => {
   function filterWebmentions(webmentions, page) {
     const pageUrl = new URL(page, "https://lukeb.co.uk");
 
-    const flattenedAllowedTypes = Object.values(types).flat();
+    const flattenedAllowedTypes = Object.values(allowedTypes).flat();
 
     return webmentions
       .filter((mention) => {
         const target = new URL(mention["wm-target"]);
-        const regex = new RegExp(`${stripTrailingSlashes(pageUrl.pathname)}$`);
-        return regex.test(stripTrailingSlashes(target.pathname));
+
+        return (
+          stripOuterSlashes(pageUrl.pathname.toLowerCase()) ===
+          stripOuterSlashes(target.pathname.toLowerCase())
+        );
       })
       .filter(
         (entry) => !!entry.author && (!!entry.author.name || entry.author.url)
@@ -39,13 +62,30 @@ module.exports = ({
 
   function clean(entry) {
     if (entry.content) {
-      entry.content.value =
-        maxContentLength > 0 && entry.content.text.length > maxContentLength
-          ? `${entry.content.text.substr(
-              0,
-              maxContentLength
-            )}${truncationMarker}`
-          : entry.content.text;
+      if (entry.content.html && htmlContent) {
+        const sanitizedContent = sanitizeHTML(
+          entry.content.html,
+          sanitizeOptions
+        );
+        const truncatedContent = truncateHTML(
+          sanitizedContent,
+          maxContentLength,
+          { ellipsis: truncationMarker, decodeEntities: true }
+        );
+
+        entry.content.value = truncatedContent.replace(
+          encode(truncationMarker),
+          truncationMarker
+        );
+      } else {
+        entry.content.value =
+          maxContentLength > 0 && entry.content.text.length > maxContentLength
+            ? `${entry.content.text.substr(
+                0,
+                maxContentLength
+              )}${truncationMarker}`
+            : entry.content.text;
+      }
     }
     return entry;
   }
@@ -56,20 +96,16 @@ module.exports = ({
 
   function mentions(webmentions, page) {
     const cleanedWebmentions = filterWebmentions(webmentions, page)
-      .sort(
-        (a, b) =>
-          new Date(a.published || a["wm-received"]) -
-          new Date(b.published || b["wm-received"])
-      )
+      .sort(sortFunction)
       .map(clean);
 
     const returnedWebmentions = {
       total: cleanedWebmentions.length,
     };
 
-    Object.keys(types).map((type) => {
+    Object.keys(allowedTypes).map((type) => {
       returnedWebmentions[type] = cleanedWebmentions.filter((mention) =>
-        types[type].includes(mention["wm-property"])
+        allowedTypes[type].includes(mention["wm-property"])
       );
     });
 
@@ -81,3 +117,8 @@ module.exports = ({
     mentions,
   };
 };
+
+filters.sanitizeDefaults = sanitizeDefaults;
+filters.typeDefaults = typeDefaults;
+
+module.exports = filters;
