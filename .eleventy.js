@@ -13,7 +13,9 @@ const config = async (eleventyConfig, options = {}) => {
   eleventyConfig.addFilter("webmentionCountForPage", filters.count);
 };
 
-config.sanitizeDefaults = WebmentionFilters.sanitizeDefaults;
-config.typeDefaults = WebmentionFilters.typeDefaults;
+config.defaults = {
+  ...Webmentions.defaults,
+  ...WebmentionFilters.defaults,
+};
 
 module.exports = config;

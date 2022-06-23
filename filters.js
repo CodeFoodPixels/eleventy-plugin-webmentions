@@ -3,24 +3,25 @@ const truncateHTML = require("truncate-html");
 const sanitizeHTML = require("sanitize-html");
 const { encode } = require("html-entities");
 
-const sanitizeDefaults = {
-  allowedTags: ["b", "i", "em", "strong", "a"],
-  allowedAttributes: {
-    a: ["href"],
+const defaults = {
+  maxContentLength: 280,
+  truncationMarker: "&hellip;",
+  htmlContent: true,
+  allowedTypes: {
+    likes: ["like-of"],
+    reposts: ["repost-of"],
+    comments: ["mention-of", "in-reply-to"],
   },
-};
-const typeDefaults = {
-  likes: ["like-of"],
-  reposts: ["repost-of"],
-  comments: ["mention-of", "in-reply-to"],
-};
-
-function defaultSort(a, b) {
-  return (
+  sanitizeOptions: {
+    allowedTags: ["b", "i", "em", "strong", "a"],
+    allowedAttributes: {
+      a: ["href"],
+    },
+  },
+  sortFunction: (a, b) =>
     new Date(a.published || a["wm-received"]) -
-    new Date(b.published || b["wm-received"])
-  );
-}
+    new Date(b.published || b["wm-received"]),
+};
 
 function stripOuterSlashes(str) {
   let start = 0;
@@ -31,12 +32,12 @@ function stripOuterSlashes(str) {
 }
 
 const filters = ({
-  maxContentLength = 280,
-  truncationMarker = "&hellip;",
-  htmlContent = true,
-  allowedTypes = typeDefaults,
-  sanitizeOptions = sanitizeDefaults,
-  sortFunction = defaultSort,
+  maxContentLength = defaults.maxContentLength,
+  truncationMarker = defaults.truncationMarker,
+  htmlContent = defaults.htmlContent,
+  allowedTypes = defaults.allowedTypes,
+  sanitizeOptions = defaults.sanitizeOptions,
+  sortFunction = defaults.sortFunction,
 }) => {
   function filterWebmentions(webmentions, page) {
     const pageUrl = new URL(page, "https://lukeb.co.uk");
@@ -118,7 +119,6 @@ const filters = ({
   };
 };
 
-filters.sanitizeDefaults = sanitizeDefaults;
-filters.typeDefaults = typeDefaults;
+filters.defaults = defaults;
 
 module.exports = filters;

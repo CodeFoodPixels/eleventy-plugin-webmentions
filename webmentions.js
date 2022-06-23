@@ -1,13 +1,25 @@
 const fs = require("fs").promises;
 const fetch = require("node-fetch");
 
-module.exports = class Webmentions {
+const defaults = {
+  cacheDirectory: "./_webmentioncache",
+  cacheTime: 3600,
+};
+class Webmentions {
   constructor({
     domain,
     token,
-    cacheDirectory = "./_webmentioncache",
-    cacheTime = 3600,
+    cacheDirectory = defaults.cacheDirectory,
+    cacheTime = defaults.cacheTime,
   }) {
+    if (typeof domain !== "string" || domain.length === 0) {
+      throw new Error("Domain must be provided as a string");
+    }
+
+    if (typeof token !== "string" || token.length === 0) {
+      throw new Error("Domain must be provided as a string");
+    }
+
     this.domain = domain;
     this.token = token;
     this.cacheDirectory = cacheDirectory;
@@ -86,4 +98,8 @@ module.exports = class Webmentions {
     }
     return cache.children;
   }
-};
+}
+
+Webmentions.defaults = defaults;
+
+module.exports = Webmentions;
