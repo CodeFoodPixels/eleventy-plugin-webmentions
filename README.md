@@ -10,9 +10,7 @@ Available on [npm](https://www.npmjs.com/package/eleventy-plugin-webmentions).
 
 ## Usage
 
-In your Eleventy config file (probably `.eleventy.js`), load the plugin module and use `.addPlugin` to add it to Eleventy with an options object that defines the `domain` and the Webmention.io `token`.
-
-### Example
+In your Eleventy config file (probably `.eleventy.js`), load the plugin module and use `.addPlugin` to add it to Eleventy with an options object that defines the `domain` and the Webmention.io `token`. Like this:
 
 ```javascript
 const Webmentions = require("eleventy-plugin-webmentions");
@@ -23,6 +21,52 @@ module.exports = function (eleventyConfig) {
     token: "ABC123XYZ987",
   });
 };
+```
+
+The plugin then adds a global data object called `webmentions`. This is an array of webmention objects that look similar to this:
+
+```javascript
+{
+  type: 'entry',
+  author: {
+    type: 'card',
+    name: 'Zach Leatherman',
+    photo: 'https://webmention.io/avatar/pbs.twimg.com/d9711a9ad30ae05a761e4a728883bcbdd852cbf7d41437925b0afc47a8589795.jpg',
+    url: 'https://twitter.com/zachleat'
+  },
+  url: 'https://twitter.com/zachleat/status/1524800520208142337',
+  published: '2022-05-12T17:15:48+00:00',
+  'wm-received': '2022-05-13T00:05:16Z',
+  'wm-id': 1397424,
+  'wm-source': 'https://brid.gy/comment/twitter/CodeFoodPixels/1524795680966991874/1524800520208142337',
+  'wm-target': 'https://lukeb.co.uk/blog/2022/01/17/pixelated-rounded-corners-with-css-clip-path/',
+  content: {
+    html: 'The step-by-step here was/is incredible detailed!\n' +
+      '<a class="u-mention" href="http://lukeb.co.uk/"></a>\n' +
+      '<a class="u-mention" href="https://twitter.com/CodeFoodPixels"></a>',
+    text: 'The step-by-step here was/is incredible detailed!',
+    value: 'The step-by-step here was/is incredible detailed! <a></a> <a></a>'
+  },
+  'in-reply-to': 'https://lukeb.co.uk/blog/2022/01/17/pixelated-rounded-corners-with-css-clip-path/',
+  'wm-property': 'in-reply-to',
+  'wm-private': false
+}
+```
+
+It also adds 2 filters:
+
+- `webmentionsForPage` will return the webmentions for that page, in the structure defined by the `mentionTypes` option.
+- `webmentionCountForPage` will return the number of webmentions for a page, filtered by the types used in the `mentionTypes` option.
+
+Here is an example of using the filters in nunjucks:
+
+```nunjucks
+{# Get the webmentions for a page #}
+{%- set postMentions = webmentions | webmentionsForPage(page.url) -%}
+
+{# Get the webmention count for a page #}
+{%- set postMentionCount = webmentions | webmentionsForPage(page.url) -%}
+
 ```
 
 ## Configuration

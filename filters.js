@@ -1,27 +1,11 @@
 const { URL } = require("url");
-const truncateHTML = require("truncate-html");
-const sanitizeHTML = require("sanitize-html");
-const { encode } = require("html-entities");
 
 const defaults = {
-  truncate: true,
-  maxContentLength: 280,
-  truncationMarker: "&hellip;",
-  htmlContent: true,
   mentionTypes: {
     likes: ["like-of"],
     reposts: ["repost-of"],
     comments: ["mention-of", "in-reply-to"],
   },
-  sanitizeOptions: {
-    allowedTags: ["b", "i", "em", "strong", "a"],
-    allowedAttributes: {
-      a: ["href"],
-    },
-  },
-  sortFunction: (a, b) =>
-    new Date(a.published || a["wm-received"]) -
-    new Date(b.published || b["wm-received"]),
 };
 
 function stripOuterSlashes(str) {
@@ -32,15 +16,7 @@ function stripOuterSlashes(str) {
   return str.slice(start - 1, end + 1);
 }
 
-const filters = ({
-  truncate = defaults.truncate,
-  maxContentLength = defaults.maxContentLength,
-  truncationMarker = defaults.truncationMarker,
-  htmlContent = defaults.htmlContent,
-  mentionTypes = defaults.mentionTypes,
-  sanitizeOptions = defaults.sanitizeOptions,
-  sortFunction = defaults.sortFunction,
-}) => {
+const filters = ({ mentionTypes = defaults.mentionTypes }) => {
   function filterWebmentions(webmentions, page) {
     const pageUrl = new URL(page, "https://lukeb.co.uk");
 
@@ -63,56 +39,19 @@ const filters = ({
       );
   }
 
-  function clean(entry) {
-    if (entry.content) {
-      if (entry.content.html && htmlContent) {
-        const sanitizedContent = sanitizeHTML(
-          entry.content.html,
-          sanitizeOptions
-        );
-
-        if (truncate) {
-          const truncatedContent = truncateHTML(
-            sanitizedContent,
-            maxContentLength,
-            { ellipsis: truncationMarker, decodeEntities: true }
-          );
-
-          entry.content.value = truncatedContent.replace(
-            encode(truncationMarker),
-            truncationMarker
-          );
-        } else {
-          entry.content.value = sanitizedContent;
-        }
-      } else {
-        entry.content.value =
-          truncate && entry.content.text.length > maxContentLength
-            ? `${entry.content.text.substr(
-                0,
-                maxContentLength
-              )}${truncationMarker}`
-            : entry.content.text;
-      }
-    }
-    return entry;
-  }
-
   function count(webmentions, page) {
     return filterWebmentions(webmentions, page).length;
   }
 
   function mentions(webmentions, page) {
-    const cleanedWebmentions = filterWebmentions(webmentions, page)
-      .sort(sortFunction)
-      .map(clean);
+    const filteredWebmentions = filterWebmentions(webmentions, page);
 
     const returnedWebmentions = {
-      total: cleanedWebmentions.length,
+      total: filteredWebmentions.length,
     };
 
     Object.keys(mentionTypes).map((type) => {
-      returnedWebmentions[type] = cleanedWebmentions.filter((mention) =>
+      returnedWebmentions[type] = filteredWebmentions.filter((mention) =>
         mentionTypes[type].includes(mention["wm-property"])
       );
     });

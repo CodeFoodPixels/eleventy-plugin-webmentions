@@ -2,7 +2,7 @@ const Webmentions = require("./webmentions");
 const WebmentionFilters = require("./filters");
 
 const config = async (eleventyConfig, options = {}) => {
-  const webmentions = new Webmentions(options);
+  const webmentions = Webmentions(options);
   const filters = WebmentionFilters(options);
 
   eleventyConfig.addGlobalData(
