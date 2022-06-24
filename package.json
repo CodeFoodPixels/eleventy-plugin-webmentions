@@ -1,6 +1,6 @@
 {
   "name": "eleventy-plugin-webmentions",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An eleventy plugin to fetch webmentions and helper methods to display them",
   "main": ".eleventy.js",
   "scripts": {
