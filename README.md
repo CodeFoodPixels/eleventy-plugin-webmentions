@@ -65,7 +65,7 @@ Here is an example of using the filters in nunjucks:
 {%- set postMentions = webmentions | webmentionsForPage(page.url) -%}
 
 {# Get the webmention count for a page #}
-{%- set postMentionCount = webmentions | webmentionsForPage(page.url) -%}
+{%- set postMentionCount = webmentions | webmentionCountForPage(page.url) -%}
 
 ```
 

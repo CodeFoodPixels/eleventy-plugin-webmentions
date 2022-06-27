@@ -13,5 +13,19 @@
     "node-fetch": "^2.6.6",
     "sanitize-html": "^2.7.0",
     "truncate-html": "^1.0.4"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CodeFoodPixels/eleventy-plugin-webmentions.git"
+  },
+  "keywords": [
+    "Eleventy",
+    "11ty",
+    "webmentions"
+  ],
+  "bugs": {
+    "url": "https://github.com/CodeFoodPixels/eleventy-plugin-webmentions/issues"
+  },
+  "homepage": "https://github.com/CodeFoodPixels/eleventy-plugin-webmentions#readme"
 }
