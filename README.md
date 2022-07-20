@@ -61,11 +61,17 @@ It also adds 2 filters:
 Here is an example of using the filters in nunjucks:
 
 ```nunjucks
-{# Get the webmentions for a page #}
-{%- set postMentions = webmentions | webmentionsForPage(page.url) -%}
+{# Get the webmentions for the current page #}
+{%- set currentPostMentions = webmentions | webmentionsForPage -%}
+
+{# Get the webmentions for a specific page #}
+{%- set postMentions = webmentions | webmentionsForPage(post.url) -%}
+
+{# Get the webmention count for the current page #}
+{%- set currentPostMentionCount = webmentions | webmentionCountForPage -%}
 
 {# Get the webmention count for a page #}
-{%- set postMentionCount = webmentions | webmentionCountForPage(page.url) -%}
+{%- set postMentionCount = webmentions | webmentionCountForPage(post.url) -%}
 
 ```
 
