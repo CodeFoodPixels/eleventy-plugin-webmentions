@@ -39,11 +39,23 @@ const filters = ({ mentionTypes = defaults.mentionTypes }) => {
       );
   }
 
-  function count(webmentions, page) {
+  function count(webmentions, pageUrl) {
+    const page =
+      pageUrl ||
+      this.page?.url ||
+      this.ctx?.page?.url ||
+      this.context?.environments?.page?.url;
+
     return filterWebmentions(webmentions, page).length;
   }
 
-  function mentions(webmentions, page) {
+  function mentions(webmentions, pageUrl) {
+    const page =
+      pageUrl ||
+      this.page?.url ||
+      this.ctx?.page?.url ||
+      this.context?.environments?.page?.url;
+
     const filteredWebmentions = filterWebmentions(webmentions, page);
 
     const returnedWebmentions = {
