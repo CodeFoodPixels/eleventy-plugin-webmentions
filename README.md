@@ -22,6 +22,7 @@ module.exports = function (eleventyConfig) {
   });
 };
 ```
+REMEMBER: You’re only allowed one `module.exports` in your configuration file, so make sure you only copy the `require` and the `.addPlugin` lines above! (Including the configuration options)
 
 The plugin then adds a global data object called `webmentions`. This is an array of webmention objects that look similar to this:
 
