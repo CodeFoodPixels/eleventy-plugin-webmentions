@@ -143,10 +143,17 @@ function Webmentions({
         };
 
         await writeToCache(webmentions);
-        return webmentions.children.sort(sortFunction).map(clean);
+
+        webmentions.children = webmentions.children
+          .sort(sortFunction)
+          .map(clean);
+
+        return webmentions;
       }
     }
-    return cache.children.sort(sortFunction).map(clean);
+
+    cache.children = cache.children.sort(sortFunction).map(clean);
+    return cache;
   }
 
   return { get };
