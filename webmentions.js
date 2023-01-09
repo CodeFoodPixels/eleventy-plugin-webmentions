@@ -3,6 +3,7 @@ const fetch = require("node-fetch");
 const truncateHTML = require("truncate-html");
 const sanitizeHTML = require("sanitize-html");
 const { encode } = require("html-entities");
+const canonical = import("@tweetback/canonical");
 
 const defaults = {
   cacheDirectory: "./_webmentioncache",
@@ -11,6 +12,7 @@ const defaults = {
   maxContentLength: 280,
   truncationMarker: "&hellip;",
   htmlContent: true,
+  useCanonicalUrls: true,
   sanitizeOptions: {
     allowedTags: ["b", "i", "em", "strong", "a"],
     allowedAttributes: {
@@ -30,6 +32,7 @@ function Webmentions({
   maxContentLength = defaults.maxContentLength,
   truncationMarker = defaults.truncationMarker,
   htmlContent = defaults.htmlContent,
+  useCanonicalUrls = defaults.useCanonicalUrls,
   sanitizeOptions = defaults.sanitizeOptions,
   sortFunction = defaults.sortFunction,
 }) {
@@ -92,9 +95,25 @@ function Webmentions({
     };
   }
 
-  function clean(entry) {
+  async function clean(entry) {
+    const { transform } = await canonical;
+
+    if (useCanonicalUrls) {
+      entry.url = transform(entry.url);
+      entry.author.url = transform(entry.author.url);
+    }
+
     if (entry.content) {
       if (entry.content.html && htmlContent) {
+        if (useCanonicalUrls) {
+          entry.content.html = entry.content.html.replaceAll(
+            /"(https:\/\/twitter.com\/(.+?))"/g,
+            function (match, p1) {
+              return transform(p1);
+            }
+          );
+        }
+
         const sanitizedContent = sanitizeHTML(
           entry.content.html,
           sanitizeOptions
@@ -124,36 +143,32 @@ function Webmentions({
             : entry.content.text;
       }
     }
+
     return entry;
   }
 
   async function get() {
-    const cache = await readFromCache();
+    const webmentions = await readFromCache();
 
     if (
-      !cache.lastFetched ||
-      Date.now() - new Date(cache.lastFetched) >= cacheTime * 1000
+      !webmentions.lastFetched ||
+      Date.now() - new Date(webmentions.lastFetched) >= cacheTime * 1000
     ) {
-      const feed = await fetchWebmentions(cache.lastFetched);
+      const feed = await fetchWebmentions(webmentions.lastFetched);
 
       if (feed) {
-        const webmentions = {
-          lastFetched: new Date().toISOString(),
-          children: [...feed, ...cache.children],
-        };
+        webmentions.lastFetched = new Date().toISOString();
+        webmentions.children = [...feed, ...webmentions.children];
 
         await writeToCache(webmentions);
-
-        webmentions.children = webmentions.children
-          .sort(sortFunction)
-          .map(clean);
-
-        return webmentions;
       }
     }
 
-    cache.children = cache.children.sort(sortFunction).map(clean);
-    return cache;
+    webmentions.children = await Promise.all(
+      webmentions.children.sort(sortFunction).map(clean)
+    );
+
+    return webmentions;
   }
 
   return { get };

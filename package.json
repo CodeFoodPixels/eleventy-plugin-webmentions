@@ -9,12 +9,12 @@
   "author": "Luke Bonaccorsi",
   "license": "MIT",
   "dependencies": {
+    "@tweetback/canonical": "^2.0.27",
     "html-entities": "^2.3.3",
     "node-fetch": "^2.6.6",
     "sanitize-html": "^2.7.0",
     "truncate-html": "^1.0.4"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CodeFoodPixels/eleventy-plugin-webmentions.git"
