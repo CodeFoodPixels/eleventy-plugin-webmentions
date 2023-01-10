@@ -14,7 +14,7 @@ const defaults = {
   htmlContent: true,
   useCanonicalSocialUrls: true,
   sanitizeOptions: {
-    allowedTags: ["b", "i", "em", "strong", "a"],
+    allowedTags: ["b", "i", "em", "strong", "a", "p"],
     allowedAttributes: {
       a: ["href"],
     },
@@ -114,6 +114,14 @@ function Webmentions({
           );
         }
 
+        if (!entry.content.html.match(/^<\/?[a-z][\s\S]*>/)) {
+          const paragraphs = entry.content.html
+            .split("\n")
+            .filter((p) => p.length > 0);
+
+          entry.content.html = `<p>${paragraphs.join("</p><p>")}</p>`;
+        }
+
         const sanitizedContent = sanitizeHTML(
           entry.content.html,
           sanitizeOptions
@@ -141,6 +149,14 @@ function Webmentions({
                 maxContentLength
               )}${truncationMarker}`
             : entry.content.text;
+
+        if (htmlContent) {
+          const paragraphs = entry.content.value
+            .split("\n")
+            .filter((p) => p.length > 0);
+
+          entry.content.value = `<p>${paragraphs.join("</p><p>")}</p>`;
+        }
       }
     }
 
