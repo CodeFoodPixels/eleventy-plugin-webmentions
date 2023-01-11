@@ -16,12 +16,17 @@ function stripOuterSlashes(str) {
   return str.slice(start - 1, end + 1);
 }
 
-const filters = ({ mentionTypes = defaults.mentionTypes, aliases = {} }) => {
-  const cleanedAliases = Object.keys(aliases).reduce((cleaned, key) => {
+const filters = ({
+  mentionTypes = defaults.mentionTypes,
+  pageAliases = {},
+}) => {
+  const cleanedAliases = Object.keys(pageAliases).reduce((cleaned, key) => {
     cleaned[stripOuterSlashes(key.toLowerCase())] =
-      typeof aliases[key] === "string"
-        ? [stripOuterSlashes(aliases[key].toLowerCase())]
-        : aliases[key].map((alias) => stripOuterSlashes(alias.toLowerCase()));
+      typeof pageAliases[key] === "string"
+        ? [stripOuterSlashes(pageAliases[key].toLowerCase())]
+        : pageAliases[key].map((alias) =>
+            stripOuterSlashes(alias.toLowerCase())
+          );
 
     return cleaned;
   }, {});

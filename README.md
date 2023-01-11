@@ -230,6 +230,46 @@ Below are all the options that can be passed to the plugin:
 <tr>
 <td>
 
+`useCanonicalTwitterUrls`
+
+</td>
+<td>boolean</td>
+<td>Optional</td>
+<td>
+
+`true`
+
+</td>
+<td>
+
+Whether or not to convert Twitter URLs using [tweetback-canonical](https://github.com/tweetback/tweetback-canonical)
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`pageAliases`
+
+</td>
+<td>object</td>
+<td>Optional</td>
+<td>
+
+`{}`
+
+</td>
+<td>
+
+An object keyed by page path, with the values either being a string of a page that is an alias of that page (e.g an old page that has been redirected) or an array of strings.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `mentionTypes`
 
 </td>
@@ -268,7 +308,7 @@ A single layer object with groupings and types that should be returned for that 
 
 ```javascript
 {
-  allowedTags: ["b", "i", "em", "strong", "a"],
+  allowedTags: ["b", "i", "em", "strong", "a", "p"],
   allowedAttributes: {
     a: ["href"],
   },

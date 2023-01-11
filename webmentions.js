@@ -12,7 +12,7 @@ const defaults = {
   maxContentLength: 280,
   truncationMarker: "&hellip;",
   htmlContent: true,
-  useCanonicalSocialUrls: true,
+  useCanonicalTwitterUrls: true,
   sanitizeOptions: {
     allowedTags: ["b", "i", "em", "strong", "a", "p"],
     allowedAttributes: {
@@ -32,7 +32,7 @@ function Webmentions({
   maxContentLength = defaults.maxContentLength,
   truncationMarker = defaults.truncationMarker,
   htmlContent = defaults.htmlContent,
-  useCanonicalSocialUrls = defaults.useCanonicalSocialUrls,
+  useCanonicalTwitterUrls = defaults.useCanonicalTwitterUrls,
   sanitizeOptions = defaults.sanitizeOptions,
   sortFunction = defaults.sortFunction,
 }) {
@@ -98,14 +98,14 @@ function Webmentions({
   async function clean(entry) {
     const { transform } = await canonical;
 
-    if (useCanonicalSocialUrls) {
+    if (useCanonicalTwitterUrls) {
       entry.url = transform(entry.url);
       entry.author.url = transform(entry.author.url);
     }
 
     if (entry.content) {
       if (entry.content.html && htmlContent) {
-        if (useCanonicalSocialUrls) {
+        if (useCanonicalTwitterUrls) {
           entry.content.html = entry.content.html.replaceAll(
             /"(https:\/\/twitter.com\/(.+?))"/g,
             function (match, p1) {
