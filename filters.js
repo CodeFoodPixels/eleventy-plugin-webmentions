@@ -16,19 +16,33 @@ function stripOuterSlashes(str) {
   return str.slice(start - 1, end + 1);
 }
 
-const filters = ({ mentionTypes = defaults.mentionTypes }) => {
+const filters = ({ mentionTypes = defaults.mentionTypes, aliases = {} }) => {
+  const cleanedAliases = Object.keys(aliases).reduce((cleaned, key) => {
+    cleaned[stripOuterSlashes(key.toLowerCase())] =
+      typeof aliases[key] === "string"
+        ? [stripOuterSlashes(aliases[key].toLowerCase())]
+        : aliases[key].map((alias) => stripOuterSlashes(alias.toLowerCase()));
+
+    return cleaned;
+  }, {});
+
   function filterWebmentions(webmentions, page) {
     const pageUrl = new URL(page, "https://lukeb.co.uk");
+    const normalizedPagePath = stripOuterSlashes(
+      pageUrl.pathname.toLowerCase()
+    );
 
     const flattenedMentionTypes = Object.values(mentionTypes).flat();
 
     return webmentions
       .filter((mention) => {
         const target = new URL(mention["wm-target"]);
-
+        const normalisedTargetPath = stripOuterSlashes(
+          target.pathname.toLowerCase()
+        );
         return (
-          stripOuterSlashes(pageUrl.pathname.toLowerCase()) ===
-          stripOuterSlashes(target.pathname.toLowerCase())
+          normalizedPagePath === normalisedTargetPath ||
+          cleanedAliases[normalizedPagePath]?.includes(normalisedTargetPath)
         );
       })
       .filter(
