@@ -41,7 +41,7 @@ function Webmentions({
   }
 
   if (typeof token !== "string" || token.length === 0) {
-    throw new Error("Domain must be provided as a string");
+    throw new Error("Token must be provided as a string.");
   }
 
   function getUrl() {
