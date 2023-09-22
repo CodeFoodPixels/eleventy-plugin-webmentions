@@ -36,37 +36,52 @@ function Webmentions({
   sanitizeOptions = defaults.sanitizeOptions,
   sortFunction = defaults.sortFunction,
 }) {
-  if (typeof domain !== "string" || domain.length === 0) {
+  if (
+    (typeof domain !== "string" && !Array.isArray(domain)) ||
+    domain.length === 0
+  ) {
     throw new Error("Domain must be provided as a string");
   }
 
-  if (typeof token !== "string" || token.length === 0) {
+  if (!Array.isArray(domain)) {
+    domain = [domain];
+  }
+
+  if (
+    (typeof token !== "string" && !Array.isArray(token)) ||
+    token.length === 0
+  ) {
     throw new Error("Token must be provided as a string.");
   }
 
-  function getUrl() {
-    return `https://webmention.io/api/mentions.jf2?domain=${domain}&token=${token}`;
+  if (!Array.isArray(token)) {
+    token = [token];
   }
 
-  async function fetchWebmentions(since, page = 0) {
+  function getUrl(idx) {
+    return `https://webmention.io/api/mentions.jf2?domain=${domain[idx]}&token=${token[idx]}`;
+  }
+
+  async function fetchWebmentions(idx, since, page = 0) {
     const PER_PAGE = 1000;
 
     const params = `&per-page=${PER_PAGE}&page=${page}${
       since ? `&since=${since}` : ""
     }`;
-    const response = await fetch(`${getUrl()}${params}`);
+    console.log(`Getting ${getUrl(idx)}${params}`);
+    const response = await fetch(`${getUrl(idx)}${params}`);
 
     if (response.ok) {
       const feed = await response.json();
       if (feed.children.length === PER_PAGE) {
-        const olderMentions = await fetchWebmentions(since, page + 1);
+        const olderMentions = await fetchWebmentions(idx, since, page + 1);
 
         return [...feed.children, ...olderMentions];
       }
       return feed.children;
     }
 
-    return null;
+    return [];
   }
 
   async function writeToCache(data) {
@@ -170,9 +185,13 @@ function Webmentions({
       !webmentions.lastFetched ||
       Date.now() - new Date(webmentions.lastFetched) >= cacheTime * 1000
     ) {
-      const feed = await fetchWebmentions(webmentions.lastFetched);
+      const feed = await Promise.all(
+        domain.map((domain, idx) =>
+          fetchWebmentions(idx, webmentions.lastFetched)
+        )
+      ).then((feeds) => feeds.flat());
 
-      if (feed) {
+      if (feed.length > 0) {
         webmentions.lastFetched = new Date().toISOString();
         webmentions.children = [...feed, ...webmentions.children];
 
